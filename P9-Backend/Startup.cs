@@ -13,6 +13,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using P9_Backend.Models;
+using P9_Backend.DAL;
+using Microsoft.EntityFrameworkCore;
 
 namespace P9_Backend
 {
@@ -36,6 +38,9 @@ namespace P9_Backend
             });*/
 
             DatabaseSettings dbSettings = Configuration.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
+
+            services.AddDbContext<DatabaseContext>(options => options.UseMySQL(dbSettings.ConnectionString));
+
             services.AddControllers();
         }
 

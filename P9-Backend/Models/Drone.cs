@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace P9_Backend.Models
 {
-    public enum DroneStatus { Charging, Launching, Landing, Returning, Searching, Following}
+    public enum DroneStatus { Idle, Charging, Launching, Landing, Returning, Searching, Following, Error = 440}
     public class Drone
     {
         public string UUID { get; private set; }
