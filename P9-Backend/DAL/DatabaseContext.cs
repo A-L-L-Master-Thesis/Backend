@@ -9,6 +9,9 @@ namespace P9_Backend.DAL
 {
     public class DatabaseContext : DbContext
     {
+        public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
+        {
+        }
         public DbSet<Drone> Drones { get; set; }
     }
 }

@@ -32,11 +32,6 @@ namespace P9_Backend
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            /*services.AddMvc().AddNewtonsoftJson(options =>
-            {
-                options.SerializerSettings.Culture = new CultureInfo("fr-FR");
-            });*/
-
             DatabaseSettings dbSettings = Configuration.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
 
             services.AddDbContext<DatabaseContext>(options => options.UseMySQL(dbSettings.ConnectionString));

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -9,17 +10,12 @@ namespace P9_Backend.Models
     public enum DroneStatus { Idle, Charging, Launching, Landing, Returning, Searching, Following, Error = 440}
     public class Drone
     {
-        public string UUID { get; private set; }
-        public DateTime LastUpdate { get; private set; }
-        public Position CurrentPosition { get; private set; }
-        public int BatteryPercentage { get; private set; }
-        public DroneStatus Status { get; private set; }
-        public string IP { get; private set; }
-
-        public Drone(string uuid, string ip)
-        {
-            UUID = uuid;
-            IP = ip;
-        }
+        [Key]
+        public string UUID { get; set; }
+        public DateTime LastUpdate { get; set; }
+        public Position CurrentPosition { get; set; }
+        public int BatteryPercentage { get; set; }
+        public DroneStatus Status { get; set; }
+        public string IP { get; set; }
     }
 }
