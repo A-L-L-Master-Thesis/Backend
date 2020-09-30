@@ -5,6 +5,7 @@
 
 #Repo Specific
 P9-Backend/appsettings.json
+P9-Backend/appsettings.Development.json
 
 # User-specific files
 *.rsuser
