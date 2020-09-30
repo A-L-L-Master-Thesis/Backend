@@ -25,6 +25,7 @@ namespace P9_Backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Drone>>> GetDrones()
         {
+            var drones = _context.Drones.Include(d => d.CurrentPosition);
             return await _context.Drones.ToListAsync();
         }
 
@@ -32,7 +33,8 @@ namespace P9_Backend.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Drone>> GetDrone(string id)
         {
-            var drone = await _context.Drones.FindAsync(id);
+            var drones = _context.Drones.Include(d => d.CurrentPosition);
+            var drone = await drones.FirstOrDefaultAsync(d => d.UUID == id);
 
             if (drone == null)
             {

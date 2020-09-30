@@ -13,7 +13,7 @@ namespace P9_Backend.Models
         [Key]
         public string UUID { get; set; }
         public DateTime LastUpdate { get; set; }
-        public Position CurrentPosition { get; set; }
+        public virtual Position CurrentPosition { get; set; }
         public int BatteryPercentage { get; set; }
         public DroneStatus Status { get; set; }
         public string IP { get; set; }
