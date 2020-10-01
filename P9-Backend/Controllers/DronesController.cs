@@ -19,6 +19,7 @@ namespace P9_Backend.Controllers
         public DronesController(DatabaseContext context)
         {
             _context = context;
+            _context.Database.Migrate();
         }
 
         // GET: api/Drones
@@ -50,6 +51,8 @@ namespace P9_Backend.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutDrone(string id, Drone drone)
         {
+            drone.IP = HttpContext.Connection.RemoteIpAddress.ToString();
+
             if (id != drone.UUID)
             {
                 return BadRequest();
@@ -82,6 +85,8 @@ namespace P9_Backend.Controllers
         [HttpPost]
         public async Task<ActionResult<Drone>> PostDrone(Drone drone)
         {
+            drone.IP = HttpContext.Connection.RemoteIpAddress.ToString();
+
             _context.Drones.Add(drone);
             try
             {

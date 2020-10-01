@@ -3,13 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace P9_Backend.Models
 {
     public class Position
     {
-        [Key]
-        public string UUID { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity), Key]
+        public int ID { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }
         public double Altitude { get; set; }
