@@ -3,6 +3,10 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+#Repo Specific
+P9-Backend/appsettings.json
+P9-Backend/appsettings.Development.json
+
 # User-specific files
 *.rsuser
 *.suo
