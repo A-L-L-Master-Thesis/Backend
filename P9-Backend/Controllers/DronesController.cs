@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using P9_Backend.DAL;
 using P9_Backend.Models;
+using P9_Backend.Services;
 
 namespace P9_Backend.Controllers
 {
@@ -15,11 +16,13 @@ namespace P9_Backend.Controllers
     public class DronesController : ControllerBase
     {
         private readonly DatabaseContext _context;
+        private readonly ISocketService _socketService;
 
-        public DronesController(DatabaseContext context)
+        public DronesController(DatabaseContext context, ISocketService socketService)
         {
             _context = context;
             _context.Database.Migrate();
+            _socketService = socketService;
         }
 
         // GET: api/Drones

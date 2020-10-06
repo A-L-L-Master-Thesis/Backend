@@ -34,7 +34,7 @@ namespace P9_Backend
             DatabaseSettings dbSettings = Configuration.GetSection(nameof(DatabaseSettings)).Get<DatabaseSettings>();
 
             services.AddDbContext<DatabaseContext>(options => options.UseLazyLoadingProxies().UseMySQL(dbSettings.ConnectionString));
-
+            System.Diagnostics.Debug.WriteLine("---------Hej----------");
             services.AddSingleton<ISocketService, SocketService>();
             services.AddControllers();
         }
