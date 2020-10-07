@@ -40,11 +40,7 @@ jobs:
           files: "CHANGELOG.md"
 
       - name: Bump Version Dev
-        if: steps.ch_check.outputs.files_exists == 'true' && ${{ github.base_ref }} == "develop"
-        run: standard-version --prerelease dev
-      
-      - name: Bump Version Master
-        if: steps.ch_check.outputs.files_exists == 'true' && ${{ github.base_ref }} == "master"
+        if: steps.ch_check.outputs.files_exists == 'true'
         run: standard-version
       
       - name: Init Version
