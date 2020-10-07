@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using P9_Backend.Models;
 using System.Threading;
+using P9_Backend.DAL;
 
 namespace P9_Backend.Services
 {
@@ -19,9 +20,13 @@ namespace P9_Backend.Services
         private ManualResetEvent allDone = new ManualResetEvent(false);
         private Task _listeningTask;
         private List<Task> _activeClientTasks = new List<Task>();
+        private readonly DatabaseContext _context;
+        private readonly IDroneService _droneService;
 
-        public SocketService()
+        public SocketService(DatabaseContext context, IDroneService droneService)
         {
+            _context = context;
+            _droneService = droneService;
             Start();
         }
 
@@ -202,6 +207,20 @@ namespace P9_Backend.Services
         private void HandleMessage(Message msg)
         {
             System.Diagnostics.Debug.WriteLine("Debug Print: " + msg.message);
+
+            switch (msg.message.command)
+            {
+                case "register":
+                    Drone regDrone = JsonConvert.DeserializeObject<Drone>(msg.message.data);
+                    _droneService.RegisterDrone(regDrone);
+                    break;
+                case "update":
+                    Drone upDrone = JsonConvert.DeserializeObject<Drone>(msg.message.data);
+                    _droneService.UpdateDrone(upDrone.UUID, upDrone);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 }

@@ -36,6 +36,7 @@ namespace P9_Backend
             services.AddDbContext<DatabaseContext>(options => options.UseLazyLoadingProxies().UseMySQL(dbSettings.ConnectionString));
 
             services.AddSingleton<ISocketService, SocketService>();
+            services.AddSingleton<IDroneService, DroneService>();
             services.AddControllers();
         }
 
