@@ -1,0 +1,8 @@
+{
+    "bumpFiles": [
+        {
+            "filename": "P9-Backend/P9-Backend.csproj",
+            "updater": "dotnet-version-updater.js"
+        }
+    ]
+}
