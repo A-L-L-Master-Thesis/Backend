@@ -23,7 +23,7 @@ namespace P9_Backend.Models
         public byte[] toBytes()
         {
             var obj = JsonConvert.SerializeObject(this);
-            return Encoding.UTF8.GetBytes(obj);
+            return Encoding.UTF8.GetBytes(obj + '\n');
         }
     }
 }

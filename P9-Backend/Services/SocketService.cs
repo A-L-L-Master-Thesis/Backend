@@ -13,6 +13,7 @@ namespace P9_Backend.Services
 {
     public class SocketService : ISocketService
     {
+        private readonly int PORT = 44444; 
         private TcpListener _listener;
         private Dictionary<string, TcpClient> _clientDict = new Dictionary<string, TcpClient>();
         private ManualResetEvent allDone = new ManualResetEvent(false);
@@ -50,8 +51,8 @@ namespace P9_Backend.Services
 
         public void StartListening()
         {
-            _listener = new TcpListener(IPAddress.Any, 44444);
-            System.Diagnostics.Debug.WriteLine("Listening on port: " + 44444);
+            _listener = new TcpListener(IPAddress.Any, PORT);
+            System.Diagnostics.Debug.WriteLine("Listening on port: " + PORT);
             _listener.Start(10);
 
             while (true)
@@ -86,8 +87,30 @@ namespace P9_Backend.Services
         {
             TcpListener connectionListener = (TcpListener)res.AsyncState;
             TcpClient connectionClient = connectionListener.EndAcceptTcpClient(res);
-            connectionClient.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.KeepAlive, true);
-            Message message = WaitForNextMessage(connectionClient).Result;
+
+            Message message = null;
+
+            try
+            {
+                message = WaitForNextMessage(connectionClient).Result;
+            }
+            catch (ObjectDisposedException)
+            {
+                System.Diagnostics.Debug.WriteLine("Socket closed unexpectedly..");
+                connectionClient.Close();
+            }
+            catch (AggregateException e)
+            {
+                if (e.InnerException is System.IO.IOException)
+                {
+                    System.Diagnostics.Debug.WriteLine("Client closed connection..");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("Unexpected exception: " + e.Message);
+                }
+                connectionClient.Close();
+            }
 
             if (message == null)
                 return;
@@ -95,12 +118,10 @@ namespace P9_Backend.Services
             if (!_clientDict.ContainsKey(message.sender))
             {
                 _clientDict.Add(message.sender, connectionClient);
-                System.Diagnostics.Debug.WriteLine("Just before task Connected: " + connectionClient.Client.Connected);
                 _activeClientTasks.Add(Task.Run(() => ContinueListening(message.sender)));
             }
 
-            //HandleMessage(message);
-            System.Diagnostics.Debug.WriteLine("Handle Incoming msg: " + message.message);
+            HandleMessage(message);
             allDone.Set();
         }
 
@@ -109,15 +130,22 @@ namespace P9_Backend.Services
             var data = new byte[connectionClient.ReceiveBufferSize];
             Message message;
 
-            System.Diagnostics.Debug.WriteLine("Connected: " + connectionClient.Client.Connected);
-
-            using NetworkStream ns = connectionClient.GetStream();
-            await ns.ReadAsync(data, 0, data.Length);
+            NetworkStream ns = connectionClient.GetStream();
+            int counter = 0;
+            do
+            {
+                try
+                {
+                    await ns.ReadAsync(data, counter, 1);
+                    counter++;
+                }
+                catch (ArgumentOutOfRangeException)
+                {
+                    break;
+                }
+            } while (data[counter-1] != 0xA);
             
-            System.Diagnostics.Debug.WriteLine("After Connected: " + connectionClient.Client.Connected);
-
             string msg = Encoding.UTF8.GetString(data);
-            System.Diagnostics.Debug.WriteLine("Raw msg: " + msg);
 
             try
             {
@@ -128,31 +156,52 @@ namespace P9_Backend.Services
                 message = null;
             }
 
-            System.Diagnostics.Debug.WriteLine("Before Return Connected: " + connectionClient.Client.Connected);
             return message;
         }
 
         private void ContinueListening(string index)
         {
             TcpClient client = _clientDict[index];
+
             while (true)
             {
-                if (!client.Connected)
+                try
+                {
+                    Message message = WaitForNextMessage(client).Result;
+
+                    if (message == null)
+                        continue;
+
+                    HandleMessage(message);
+                    
+                }
+                catch (ObjectDisposedException)
+                {
+                    System.Diagnostics.Debug.WriteLine("Socket closed unexpectedly..");
+                    _clientDict[index].Close();
+                    _clientDict.Remove(index);
                     break;
-
-                Message message = WaitForNextMessage(client).Result;
-
-                if (message == null)
-                    continue;
-
-                //HandleMessage(message);
-                System.Diagnostics.Debug.WriteLine("Continue msg: " + message.message);
+                }
+                catch (AggregateException e)
+                {
+                    if(e.InnerException is System.IO.IOException)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Client closed connection..");
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("Unexpected exception: " + e.Message);
+                    }
+                    _clientDict[index].Close();
+                    _clientDict.Remove(index);
+                    break;
+                } 
             }
         }
 
         private void HandleMessage(Message msg)
         {
-            throw new NotImplementedException();
+            System.Diagnostics.Debug.WriteLine("Debug Print: " + msg.message);
         }
     }
 }
