@@ -1,0 +1,59 @@
+name: ChangeLog Generation
+
+on: 
+  pull_request:
+    types: closed
+    branches: 
+      - master
+      - develop
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      
+      - name: Setup Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Install Standart-version
+        run: sudo npm i -g standard-version
+      
+      - name: Install xml-js
+        run: npm i xml-js
+      
+      - name: Get updater
+        uses: andymckay/get-gist-action@0.1
+        with:
+          gistURL: https://gist.github.com/LukasRH/afdc996096fcde39850295bec8f5dd53
+          
+      - name: Check if changelog exist
+        id: ch_check
+        uses: andstor/file-existence-action@v1
+        with:
+          files: "CHANGELOG.md"
+
+      - name: Bump Version Dev
+        if: steps.ch_check.outputs.files_exists == 'true' && ${{ github.base_ref }} == "develop"
+        run: standard-version --prerelease dev
+      
+      - name: Bump Version Master
+        if: steps.ch_check.outputs.files_exists == 'true' && ${{ github.base_ref }} == "master"
+        run: standard-version
+      
+      - name: Init Version
+        if: steps.ch_check.outputs.files_exists == 'false'
+        run: standard-version --first-release
+    
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.base_ref }}
+          tags: true
