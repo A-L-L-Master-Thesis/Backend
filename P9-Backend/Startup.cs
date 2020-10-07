@@ -15,6 +15,7 @@ using Newtonsoft.Json;
 using P9_Backend.Models;
 using P9_Backend.DAL;
 using Microsoft.EntityFrameworkCore;
+using P9_Backend.Services;
 
 namespace P9_Backend
 {
@@ -34,6 +35,7 @@ namespace P9_Backend
 
             services.AddDbContext<DatabaseContext>(options => options.UseLazyLoadingProxies().UseMySQL(dbSettings.ConnectionString));
 
+            services.AddSingleton<ISocketService, SocketService>();
             services.AddControllers();
         }
 
@@ -55,6 +57,8 @@ namespace P9_Backend
             {
                 endpoints.MapControllers();
             });
+
+            app.ApplicationServices.GetService<ISocketService>();
         }
     }
 }
