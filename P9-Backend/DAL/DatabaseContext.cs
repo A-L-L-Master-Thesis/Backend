@@ -20,5 +20,9 @@ namespace P9_Backend.DAL
         {
             throw new NotImplementedException();
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+        }
     }
 }

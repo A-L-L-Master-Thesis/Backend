@@ -210,11 +210,11 @@ namespace P9_Backend.Services
             switch (msg.message.command)
             {
                 case "register":
-                    Drone regDrone = JsonConvert.DeserializeObject<Drone>(msg.message.data);
+                    Drone regDrone = JsonConvert.DeserializeObject<Drone>(msg.message.data.ToString());
                     _droneService.RegisterDrone(regDrone);
                     break;
                 case "update":
-                    Drone upDrone = JsonConvert.DeserializeObject<Drone>(msg.message.data);
+                    Drone upDrone = JsonConvert.DeserializeObject<Drone>(msg.message.data.ToString());
                     _droneService.UpdateDrone(upDrone.UUID, upDrone);
                     break;
                 default:
