@@ -27,11 +27,13 @@ namespace P9_Backend.Services
                 var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
             
                 var drone = await dbContext.Drones.Include(d => d.CurrentPosition).FirstOrDefaultAsync(d => d.UUID == uuid);
-                var pos = drone.CurrentPosition;
+                
                 if (drone == null)
                 {
                     return QueryResult.NotFoundError;
                 }
+
+                var pos = drone.CurrentPosition;
 
                 dbContext.Drones.Remove(drone);
                 dbContext.Position.Remove(pos);

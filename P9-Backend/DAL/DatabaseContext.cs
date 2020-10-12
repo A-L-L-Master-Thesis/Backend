@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace P9_Backend.DAL
 {
-    public class DatabaseContext : DbContext, IDatabaseContext, IServiceScopeFactory
+    public class DatabaseContext : DbContext, IDatabaseContext
     {
         public DatabaseContext(DbContextOptions<DatabaseContext> options) : base(options)
         {
@@ -16,10 +16,5 @@ namespace P9_Backend.DAL
 
         public DbSet<Drone> Drones { get; set; }
         public DbSet<Position> Position { get; set; }
-
-        public IServiceScope CreateScope()
-        {
-            throw new NotImplementedException();
-        }
     }
 }
