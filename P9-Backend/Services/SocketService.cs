@@ -125,7 +125,7 @@ namespace P9_Backend.Services
                 _activeClientTasks.Add(Task.Run(() => ContinueListening(message.sender)));
             }
 
-            HandleMessage(message);
+            HandleMessage(message, connectionClient);
             allDone.Set();
         }
 
@@ -176,7 +176,7 @@ namespace P9_Backend.Services
                     if (message == null)
                         continue;
 
-                    HandleMessage(message);
+                    HandleMessage(message, client);
                     
                 }
                 catch (ObjectDisposedException)
@@ -203,18 +203,18 @@ namespace P9_Backend.Services
             }
         }
 
-        private void HandleMessage(Message msg)
+        private void HandleMessage(Message msg, TcpClient client)
         {
-            System.Diagnostics.Debug.WriteLine("Debug Print: " + msg.message);
-
             switch (msg.message.command)
             {
                 case "register":
                     Drone regDrone = JsonConvert.DeserializeObject<Drone>(msg.message.data.ToString());
+                    regDrone.IP = client.Client.RemoteEndPoint.ToString();
                     _droneService.RegisterDrone(regDrone);
                     break;
                 case "update":
                     Drone upDrone = JsonConvert.DeserializeObject<Drone>(msg.message.data.ToString());
+                    upDrone.IP = client.Client.RemoteEndPoint.ToString();
                     _droneService.UpdateDrone(upDrone.UUID, upDrone);
                     break;
                 default:

@@ -26,13 +26,16 @@ namespace P9_Backend.Services
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
             
-                var drone = await dbContext.Drones.FindAsync(uuid);
+                var drone = await dbContext.Drones.Include(d => d.CurrentPosition).FirstOrDefaultAsync(d => d.UUID == uuid);
+                var pos = drone.CurrentPosition;
                 if (drone == null)
                 {
                     return QueryResult.NotFoundError;
                 }
 
                 dbContext.Drones.Remove(drone);
+                dbContext.Position.Remove(pos);
+                
                 await dbContext.SaveChangesAsync();
 
                 return QueryResult.OK;
@@ -93,7 +96,13 @@ namespace P9_Backend.Services
             using (var scope = _scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
-                dbContext.Entry(drone).State = EntityState.Modified;
+
+                var dbDrone = await dbContext.Drones.Include(d => d.CurrentPosition).FirstOrDefaultAsync(d => d.UUID == uuid);
+                drone.CurrentPosition.ID = dbDrone.CurrentPosition.ID;
+
+                dbContext.Entry(dbDrone).State = EntityState.Detached;
+                dbContext.Entry(dbDrone.CurrentPosition).State = EntityState.Detached;
+                dbContext.Drones.Update(drone);
 
                 try
                 {

@@ -15,14 +15,11 @@ namespace P9_Backend.DAL
         }
 
         public DbSet<Drone> Drones { get; set; }
+        public DbSet<Position> Position { get; set; }
 
         public IServiceScope CreateScope()
         {
             throw new NotImplementedException();
-        }
-
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
         }
     }
 }

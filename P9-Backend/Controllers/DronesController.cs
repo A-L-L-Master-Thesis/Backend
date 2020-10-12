@@ -16,14 +16,12 @@ namespace P9_Backend.Controllers
     public class DronesController : ControllerBase
     {
         private readonly DatabaseContext _context;
-        //private readonly ISocketService _socketService;
         private readonly IDroneService _droneService;
 
-        public DronesController(DatabaseContext context, /*ISocketService socketService,*/ IDroneService droneService)
+        public DronesController(DatabaseContext context, IDroneService droneService)
         {
             _context = context;
             _context.Database.Migrate();
-            //_socketService = socketService;
             _droneService = droneService;
         }
 
