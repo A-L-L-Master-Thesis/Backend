@@ -10,7 +10,7 @@ namespace P9_Backend.Services
     {
         public abstract void Start();
         public abstract void Stop();
-        public abstract void SendOne(string uuid, Message msg);
-        public abstract void SendAll(Message msg);
+        public abstract void SendOne(string uuid, string command, string data);
+        public abstract void SendAll(string command, string data);
     }
 }

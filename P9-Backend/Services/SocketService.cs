@@ -22,6 +22,8 @@ namespace P9_Backend.Services
         private Task _listeningTask;
         private List<Task> _activeClientTasks = new List<Task>();
         private readonly IDroneService _droneService;
+        private CancellationTokenSource _cts = new CancellationTokenSource();
+        private bool isDead;
 
         public SocketService(IDroneService droneService)
         {
@@ -31,29 +33,33 @@ namespace P9_Backend.Services
 
         public void Start()
         {
-            _listeningTask = Task.Run(() => StartListening());
+            _listeningTask = Task.Run(() => { StartListening(); }, _cts.Token);
         }
 
         public void Stop()
         {
-            _listeningTask.Dispose();
+            isDead = true;
+            _cts.Cancel();
+            _listener.Stop();
+            //_listeningTask.Dispose();
 
-            foreach (var pair in _clientDict)
+            /*foreach (var pair in _clientDict)
             {
+                //pair.Value.GetStream().Close();
                 pair.Value.Close();
-            }
+            }*/
 
             _clientDict.Clear();
 
-            foreach (Task task in _activeClientTasks)
+            /*foreach (Task task in _activeClientTasks)
             {
                 task.Dispose();
-            }
+            }*/
 
             _activeClientTasks.Clear();
         }
 
-        public void StartListening()
+        private void StartListening()
         {
             _listener = new TcpListener(IPAddress.Any, PORT);
             System.Diagnostics.Debug.WriteLine("Listening on port: " + PORT);
@@ -61,35 +67,48 @@ namespace P9_Backend.Services
 
             while (true)
             {
+                if (_cts.Token.IsCancellationRequested)
+                    break;
+
                 allDone.Reset();
                 _listener.BeginAcceptTcpClient(HandleIncommingConnection, _listener);
                 allDone.WaitOne();
             }
         }
 
-        public void SendOne(string uuid, Message msg)
+        public void SendOne(string uuid, string command, string data)
         {
             if (!_clientDict.ContainsKey(uuid))
             {
                 return;
             }
 
+            Commando cmd = new Commando { command = command, data = data };
+            Message msgSend = new Message(uuid, cmd, "API");
+
+
             NetworkStream ns = _clientDict[uuid].GetStream();
-            ns.Write(msg.toBytes());
+            ns.Write(msgSend.toBytes());
         }
 
-        public void SendAll(Message msg)
+        public void SendAll(string command, string data)
         {
+            Commando cmd = new Commando { command = command, data = data };
+
             foreach (var pair in _clientDict)
             {
+                Message msgSend = new Message(pair.Key, cmd, "API");
+
                 NetworkStream ns = pair.Value.GetStream();
-                ns.Write(msg.toBytes());
+                ns.Write(msgSend.toBytes());
             }
         }
 
         private void HandleIncommingConnection(IAsyncResult res)
         {
             TcpListener connectionListener = (TcpListener)res.AsyncState;
+            if (isDead)
+                return;
             TcpClient connectionClient = connectionListener.EndAcceptTcpClient(res);
 
             Message message = null;
@@ -140,7 +159,11 @@ namespace P9_Backend.Services
             {
                 try
                 {
-                    await ns.ReadAsync(data, counter, 1);
+                    await ns.ReadAsync(data, counter, 1, _cts.Token);
+
+                    if (_cts.Token.IsCancellationRequested)
+                        _cts.Token.ThrowIfCancellationRequested();
+
                     counter++;
                 }
                 catch (ArgumentOutOfRangeException)
@@ -169,6 +192,9 @@ namespace P9_Backend.Services
 
             while (true)
             {
+                if (_cts.Token.IsCancellationRequested)
+                    _cts.Token.ThrowIfCancellationRequested();
+
                 try
                 {
                     Message message = WaitForNextMessage(client).Result;
@@ -216,6 +242,9 @@ namespace P9_Backend.Services
                     Drone upDrone = JsonConvert.DeserializeObject<Drone>(msg.message.data.ToString());
                     upDrone.IP = client.Client.RemoteEndPoint.ToString();
                     _droneService.UpdateDrone(upDrone.UUID, upDrone);
+                    break;
+                case "ping":
+                    SendOne(msg.sender, "pong", "");
                     break;
                 default:
                     break;
