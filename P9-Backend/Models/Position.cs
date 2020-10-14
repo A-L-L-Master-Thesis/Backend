@@ -9,7 +9,7 @@ namespace P9_Backend.Models
 {
     public class Position
     {
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity), Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity), Key, ForeignKey("Drone")]
         public int ID { get; set; }
         public double Latitude { get; set; }
         public double Longitude { get; set; }

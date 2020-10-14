@@ -16,29 +16,27 @@ namespace P9_Backend.Controllers
     public class DronesController : ControllerBase
     {
         private readonly DatabaseContext _context;
-        private readonly ISocketService _socketService;
+        private readonly IDroneService _droneService;
 
-        public DronesController(DatabaseContext context, ISocketService socketService)
+        public DronesController(DatabaseContext context, IDroneService droneService)
         {
             _context = context;
             _context.Database.Migrate();
-            _socketService = socketService;
+            _droneService = droneService;
         }
 
         // GET: api/Drones
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Drone>>> GetDrones()
         {
-            var drones = _context.Drones.Include(d => d.CurrentPosition);
-            return await _context.Drones.ToListAsync();
+            return await _droneService.GetDrones();
         }
 
         // GET: api/Drones/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Drone>> GetDrone(string id)
         {
-            var drones = _context.Drones.Include(d => d.CurrentPosition);
-            var drone = await drones.FirstOrDefaultAsync(d => d.UUID == id);
+            var drone = await _droneService.GetDrone(id);
 
             if (drone == null)
             {
@@ -61,25 +59,14 @@ namespace P9_Backend.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(drone).State = EntityState.Modified;
+            var result = await _droneService.UpdateDrone(id, drone);
 
-            try
+            if (result == QueryResult.NotFoundError)
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!DroneExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return NotFound();
             }
 
-            return NoContent();
+            return Ok();
         }
 
         // POST: api/Drones
@@ -90,21 +77,11 @@ namespace P9_Backend.Controllers
         {
             drone.IP = HttpContext.Connection.RemoteIpAddress.ToString();
 
-            _context.Drones.Add(drone);
-            try
+            var result = await _droneService.RegisterDrone(drone);
+
+            if (result == QueryResult.ConflictError)
             {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                if (DroneExists(drone.UUID))
-                {
-                    return Conflict();
-                }
-                else
-                {
-                    throw;
-                }
+                return Conflict();
             }
 
             return CreatedAtAction("GetDrone", new { id = drone.UUID }, drone);
@@ -114,21 +91,13 @@ namespace P9_Backend.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Drone>> DeleteDrone(string id)
         {
-            var drone = await _context.Drones.FindAsync(id);
-            if (drone == null)
+            var result = await _droneService.DeleteDrone(id);
+            if (result == QueryResult.NotFoundError)
             {
                 return NotFound();
             }
 
-            _context.Drones.Remove(drone);
-            await _context.SaveChangesAsync();
-
-            return drone;
-        }
-
-        private bool DroneExists(string id)
-        {
-            return _context.Drones.Any(e => e.UUID == id);
+            return Ok();
         }
     }
 }
