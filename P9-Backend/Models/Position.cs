@@ -7,12 +7,10 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace P9_Backend.Models
 {
-    public class Position
+    public class Position : Coordinate
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity), Key, ForeignKey("Drone")]
         public int ID { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
         public double Altitude { get; set; }
     }
 }
