@@ -3,14 +3,13 @@ using Newtonsoft.Json;
 using NUnit.Framework;
 using P9_Backend.Models;
 using P9_Backend.Services;
-using System;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
 namespace P9_Backend_Tests.Services
 {
-    class SocketServiceTests
+    public class SocketServiceTests
     {
         private Mock<IDroneService> _mock = new Mock<IDroneService>();
 

@@ -23,7 +23,6 @@ namespace P9_Backend.Services
         private List<Task> _activeClientTasks = new List<Task>();
         private readonly IDroneService _droneService;
         private CancellationTokenSource _cts = new CancellationTokenSource();
-        private bool isDead;
 
         public SocketService(IDroneService droneService)
         {
@@ -38,24 +37,10 @@ namespace P9_Backend.Services
 
         public void Stop()
         {
-            isDead = true;
             _cts.Cancel();
             _listener.Stop();
-            //_listeningTask.Dispose();
-
-            /*foreach (var pair in _clientDict)
-            {
-                //pair.Value.GetStream().Close();
-                pair.Value.Close();
-            }*/
 
             _clientDict.Clear();
-
-            /*foreach (Task task in _activeClientTasks)
-            {
-                task.Dispose();
-            }*/
-
             _activeClientTasks.Clear();
         }
 
@@ -107,7 +92,7 @@ namespace P9_Backend.Services
         private void HandleIncommingConnection(IAsyncResult res)
         {
             TcpListener connectionListener = (TcpListener)res.AsyncState;
-            if (isDead)
+            if (_cts.Token.IsCancellationRequested)
                 return;
             TcpClient connectionClient = connectionListener.EndAcceptTcpClient(res);
 
