@@ -22,6 +22,8 @@ namespace P9_Backend
 {
     public class Startup
     {
+        readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -38,7 +40,16 @@ namespace P9_Backend
 
             services.AddSingleton<IDroneService, DroneService>();
             services.AddSingleton<ISocketService, SocketService>();
-            
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy(name: MyAllowSpecificOrigins,
+                    builder =>
+                    {
+                        builder.WithOrigins("http://localhost:4200", "https://localhost:4200").AllowAnyHeader().AllowAnyMethod();
+                    });
+            });
+
             services.AddControllers();
         }
 
@@ -53,6 +64,7 @@ namespace P9_Backend
             app.UseHttpsRedirection();
 
             app.UseRouting();
+            app.UseCors(MyAllowSpecificOrigins);
 
             app.UseAuthorization();
 
