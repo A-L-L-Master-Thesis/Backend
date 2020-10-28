@@ -15,13 +15,10 @@ namespace P9_Backend.Controllers
     [ApiController]
     public class DronesController : ControllerBase
     {
-        private readonly DatabaseContext _context;
         private readonly IDroneService _droneService;
 
-        public DronesController(DatabaseContext context, IDroneService droneService)
+        public DronesController(IDroneService droneService)
         {
-            _context = context;
-            _context.Database.Migrate();
             _droneService = droneService;
         }
 

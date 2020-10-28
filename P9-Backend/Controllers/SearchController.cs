@@ -13,12 +13,17 @@ namespace P9_Backend.Controllers
     [ApiController]
     public class SearchController : ControllerBase
     {
-        private AreaDecomposition areaDecom = new AreaDecomposition();
+        private readonly IAreaDecompositionService _areaDecompositonService;
+
+        public SearchController(IAreaDecompositionService areaDecompositonService)
+        {
+            _areaDecompositonService = areaDecompositonService;
+        }
 
         [HttpPost]
         public async Task<ActionResult<List<DroneZone>>> PostSearch(List<Coordinate> searchArea)
         {
-            List<DroneZone> result = areaDecom.ComputeSubAreas(searchArea);
+            List<DroneZone> result = _areaDecompositonService.ComputeSubAreas(searchArea);
             return Ok(result);
         }
     }
