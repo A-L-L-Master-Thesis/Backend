@@ -38,7 +38,16 @@ namespace P9_Backend
 
             services.AddSingleton<IDroneService, DroneService>();
             services.AddSingleton<ISocketService, SocketService>();
-            
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("CorsPolicy",
+                    builder => builder.AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    );
+            });
+
             services.AddControllers();
         }
 
@@ -53,6 +62,8 @@ namespace P9_Backend
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors("CorsPolicy");
 
             app.UseAuthorization();
 
