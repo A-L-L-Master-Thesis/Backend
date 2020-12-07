@@ -60,7 +60,7 @@ namespace P9_Backend.Controllers
                 return resp;
             }
 
-            if (!(drones.Any(d => d.Status == DroneStatus.Searching || d.Status == DroneStatus.Following)))
+            if (!(drones.Any(d => d.Status == DroneStatus.Searching || d.Status == DroneStatus.Following || d.Status == DroneStatus.Launching)))
             {
                 var resp = Content("No drones in the air");
                 resp.StatusCode = 406;

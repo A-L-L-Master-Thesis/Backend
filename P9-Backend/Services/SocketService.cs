@@ -69,7 +69,7 @@ namespace P9_Backend.Services
             }
 
             Commando cmd = new Commando { command = command, data = data };
-            Message msgSend = new Message(uuid, cmd, "API");
+            Message msgSend = new Message("API", cmd, uuid);
 
 
             NetworkStream ns = _clientDict[uuid].GetStream();
@@ -82,7 +82,7 @@ namespace P9_Backend.Services
 
             foreach (var pair in _clientDict)
             {
-                Message msgSend = new Message(pair.Key, cmd, "API");
+                Message msgSend = new Message("API", cmd, pair.Key);
 
                 NetworkStream ns = pair.Value.GetStream();
                 ns.Write(msgSend.toBytes());
@@ -221,7 +221,8 @@ namespace P9_Backend.Services
                 case "register":
                     Drone regDrone = JsonConvert.DeserializeObject<Drone>(msg.message.data.ToString());
                     regDrone.IP = client.Client.RemoteEndPoint.ToString();
-                    _droneService.RegisterDrone(regDrone);
+                    _droneService.RegisterDrone(regDrone).Wait();
+                    SendOne(msg.sender, "Ack", "");
                     break;
                 case "update":
                     Drone upDrone = JsonConvert.DeserializeObject<Drone>(msg.message.data.ToString());
