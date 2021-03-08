@@ -38,6 +38,7 @@ namespace P9_Backend
 
             services.AddSingleton<IDroneService, DroneService>();
             services.AddSingleton<ISocketService, SocketService>();
+            services.AddSingleton<IFeedService, FeedService>();
 
             services.AddCors(options =>
             {
