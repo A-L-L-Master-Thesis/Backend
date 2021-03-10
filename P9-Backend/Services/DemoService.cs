@@ -167,13 +167,14 @@ namespace P9_Backend.Services
         /// <param name="droneIDX">The index of the DemoDrone</param>
         private void AdvanceDrone(DemoDrone drone, int droneIDX)
         {
-            if(drone.Linecoords.Count == 0)
+            double bearing = drone.Reverse ? _droneBearings[droneIDX, drone.CurrentStep, 0] + 180 : _droneBearings[droneIDX, drone.CurrentStep, 0];
+
+            if (drone.Linecoords.Count == 0)
             {
                 //Calculate the next line of points
                 drone.Linecoords = 
-                    GetNextPathLine(drone.DroneObj.CurrentPosition.Latitude, drone.DroneObj.CurrentPosition.Longitude, 
-                    drone.Reverse ? _droneBearings[droneIDX, drone.CurrentStep, 0] + 180 : _droneBearings[droneIDX, drone.CurrentStep, 0], 
-                    _droneBearings[droneIDX, drone.CurrentStep, 1]);
+                    GetNextPathLine(drone.DroneObj.CurrentPosition.Latitude, drone.DroneObj.CurrentPosition.Longitude,
+                    bearing, _droneBearings[droneIDX, drone.CurrentStep, 1]);
 
                 if (drone.Reverse)
                     drone.CurrentStep--;
@@ -196,6 +197,7 @@ namespace P9_Backend.Services
             //Set Coords to the next coords on the path
             drone.DroneObj.CurrentPosition.Latitude = nextCoords.Item1;
             drone.DroneObj.CurrentPosition.Longitude = nextCoords.Item2;
+            drone.DroneObj.CurrentPosition.Bearing = (int)bearing;
 
             //Update the drone in the DB
             _droneService.UpdateDrone(drone.DroneObj.UUID, drone.DroneObj);
