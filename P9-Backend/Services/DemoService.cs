@@ -11,11 +11,10 @@ namespace P9_Backend.Services
     public class DemoService : IDemoService
     {
         private readonly IDroneService _droneService;
-        private readonly int _pointsPerLine = 20;
-        private readonly double _lineLength = 0.5;
         private List<DemoDrone> _demoDrones = new List<DemoDrone>();
-        private readonly int _stepDelay = 2000;
+        private readonly int _stepDelay = 2000; // Milliseconds
         private readonly double _R = 6371.0; // Earth's Radius
+        private readonly double _droneSpeed = 10; // M/s.
 
         private List<Tuple<double, double>> _startPositions = new List<Tuple<double, double>>
         {
@@ -29,16 +28,16 @@ namespace P9_Backend.Services
             new Tuple<double, double>(57.05692438338328, 9.949830999703373),
         };
 
-        private double[,] _droneBearings =
+        private double[,,] _droneBearings =
         {
-            {28, 110, 208, 110, 28, 110, 208},
-            {208, 110, 28, 110, 208, 110, 28},
-            {28, 110, 208, 110, 28, 110, 208},
-            {160 ,53, -20, 53, 160, 53, -20},
-            {-20, 53, 160, 53, -20, 53, 160},
-            {160 ,53, -20, 53, 160, 53, -20},
-            {-20, 53, 160, 53, -20, 53, 160},
-            {160 ,53, -20, 53, 160, 53, -20}
+            {{28,374}, {110, 52}, {208, 374}, {110, 52}, {28,374}, {110, 52}, {208, 374}},
+            {{208, 494}, {110, 52}, {28, 494}, {110, 52}, {208, 494}, {110, 52}, {28, 494}},
+            {{28, 534}, {110, 52}, {208, 534}, {110, 52}, {28, 534}, {110, 52}, {208, 534}},
+            {{160, 508} , {53, 52}, {-20, 508}, {53, 52}, {160, 508}, {53, 52}, {-20, 508}},
+            {{-20, 515}, {53, 52}, {160, 515}, {53, 52}, {-20, 515}, {53, 52}, {160, 515}},
+            {{160, 515} ,{53, 52}, {-20, 515}, {53, 52}, {160, 515}, {53, 52}, {-20, 515}},
+            {{-20, 508}, {53, 52}, {160, 508}, {53, 52}, {-20, 508}, {53, 52}, {160, 508}},
+            {{160, 434} ,{53, 52}, {-20, 434}, {53, 52}, {160, 434}, {53, 52}, {-20, 434}}
         };
 
         private Task _demoTask = null;
@@ -65,6 +64,9 @@ namespace P9_Backend.Services
         {
             try
             {
+                if (_demoTask != null)
+                    return false;
+
                 await Task.Run(() => {
                     List<Drone> dronesList = _droneService.GetDrones().Result.Value.ToList();
 
@@ -130,6 +132,8 @@ namespace P9_Backend.Services
                     await _demoTask;
 
                     _demoTask = null;
+                    _cancellationTokenSource = new CancellationTokenSource();
+                    _cancellationToken = _cancellationTokenSource.Token;
 
                     return true;
                 }
@@ -156,16 +160,35 @@ namespace P9_Backend.Services
             }
         }
 
+        /// <summary>
+        /// Advances the Drones by one step
+        /// </summary>
+        /// <param name="drone">The DemoDrone to advance</param>
+        /// <param name="droneIDX">The index of the DemoDrone</param>
         private void AdvanceDrone(DemoDrone drone, int droneIDX)
         {
             if(drone.Linecoords.Count == 0)
             {
                 //Calculate the next line of points
                 drone.Linecoords = 
-                    GetNextPathLine(drone.DroneObj.CurrentPosition.Latitude, drone.DroneObj.CurrentPosition.Longitude, _droneBearings[droneIDX, drone.CurrentStep++], _lineLength);
-                if(drone.CurrentStep >= 8)
+                    GetNextPathLine(drone.DroneObj.CurrentPosition.Latitude, drone.DroneObj.CurrentPosition.Longitude, 
+                    drone.Reverse ? _droneBearings[droneIDX, drone.CurrentStep, 0] + 180 : _droneBearings[droneIDX, drone.CurrentStep, 0], 
+                    _droneBearings[droneIDX, drone.CurrentStep, 1]);
+
+                if (drone.Reverse)
+                    drone.CurrentStep--;
+                else
+                    drone.CurrentStep++;
+
+                if (drone.CurrentStep >= 7)
+                {
+                    drone.CurrentStep = 6;
+                    drone.Reverse = true;
+                }
+                else if (drone.CurrentStep < 0)
                 {
                     drone.CurrentStep = 0;
+                    drone.Reverse = false;
                 }
             }
             var nextCoords = drone.Linecoords.Dequeue();
@@ -181,15 +204,12 @@ namespace P9_Backend.Services
         // Coordinate calculations from: http://www.movable-type.co.uk/scripts/latlong.html#destPoint
         private Tuple<double, double> GetNextCoordinate(double φ1, double λ1, double θ, double d)
         {
-            System.Diagnostics.Debug.WriteLine("1: " + φ1 + " " + λ1);
             θ = ToRad(θ);
             φ1 = ToRad(φ1);
             λ1 = ToRad(λ1);
 
             double φ2 = Math.Asin(Math.Sin(φ1) * Math.Cos(d / _R) + Math.Cos(φ1) * Math.Sin(d / _R) * Math.Cos(θ));
             double λ2 = λ1 + Math.Atan2(Math.Sin(θ) * Math.Sin(d / _R) * Math.Cos(φ1), Math.Cos(d / _R) - Math.Sin(φ1) * Math.Sin(φ2));
-
-            System.Diagnostics.Debug.WriteLine("2: " + ToDeg(φ2) + " " + ToDeg(λ2));
 
             return new Tuple<double, double>(ToDeg(φ2), ToDeg(λ2));
         }
@@ -214,11 +234,11 @@ namespace P9_Backend.Services
         /// <returns>A Queue with tuples of doubles</returns>
         private Queue<Tuple<double, double>> GetNextPathLine(double φ1, double λ1, double θ, double d)
         {
-            System.Diagnostics.Debug.WriteLine(φ1 + " " + λ1);
-            double stepD = d / _pointsPerLine;
+            int pointsPerLine = (int)(d / (_droneSpeed * (_stepDelay/1000)));
+            double stepD = (d / pointsPerLine) / 1000;
             Queue<Tuple<double, double>> resList = new Queue<Tuple<double, double>>();
 
-            for (int i = 0; i < _pointsPerLine; i++)
+            for (int i = 0; i < pointsPerLine; i++)
             {
                 if(i == 0)
                 {

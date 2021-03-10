@@ -11,6 +11,7 @@ namespace P9_Backend.Models
         public int CurrentStep { get; set; } = 0;
         private Queue<Tuple<double, double>> _lineCoords = new Queue<Tuple<double, double>>();
         public Queue<Tuple<double, double>> Linecoords { get { return _lineCoords; } set { _lineCoords = value; } }
+        public bool Reverse { get; set; } = false;
 
         public DemoDrone(Drone drone)
         {
@@ -20,6 +21,7 @@ namespace P9_Backend.Models
         public void ResetDemoDrone()
         {
             CurrentStep = 0;
+            Reverse = false;
             _lineCoords.Clear();
         }
     }
