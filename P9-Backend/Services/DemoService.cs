@@ -125,7 +125,7 @@ namespace P9_Backend.Services
         public async Task<ActionResult<bool>> StopDemo()
         {
             return await Task.Run(async () => {
-                if(!_cancellationToken.IsCancellationRequested)
+                if(!_cancellationToken.IsCancellationRequested && _demoTask != null)
                 {
                     _cancellationTokenSource.Cancel();
 
@@ -144,6 +144,25 @@ namespace P9_Backend.Services
             });
         }
 
+        public async Task<ActionResult<bool>> PauseDrone(string id, bool pause)
+        {
+            return await Task.Run(() =>
+            {
+                if (_demoTask == null)
+                    return false;
+
+                try
+                {
+                    _demoDrones.Find(x => x.DroneObj.UUID == id).Paused = pause;
+                    return true;
+                }
+                catch (NullReferenceException)
+                {
+                    return false;
+                }
+            });
+        }
+
         private void DemoLoop()
         {
             //Continue looping untill a cancel is requested
@@ -152,6 +171,10 @@ namespace P9_Backend.Services
                 int i = 0;
                 foreach (DemoDrone drone in _demoDrones)
                 {
+                    //Skip if paused
+                    if (drone.Paused)
+                        continue;
+
                     // Advance the drone by one step
                     AdvanceDrone(drone, i++);
                 }

@@ -10,6 +10,7 @@ namespace P9_Backend.Services
     {
         public abstract Task<ActionResult<bool>> StartDemo();
         public abstract Task<ActionResult<bool>> StopDemo();
+        public abstract Task<ActionResult<bool>> PauseDrone(string id, bool pause);
         public abstract Task<ActionResult<bool>> ResetDemo();
     }
 }
