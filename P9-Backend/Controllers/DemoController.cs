@@ -27,6 +27,12 @@ namespace P9_Backend.Controllers
                 return await _demoService.StopDemo();
         }
 
+        [HttpPut("{id}/{pause}")]
+        public async Task<ActionResult<bool>> TogglePauseDrone(string id, bool pause)
+        {
+            return await _demoService.PauseDrone(id, pause);
+        }
+
         // DELETE: api/demo
         [HttpDelete]
         public async Task<ActionResult<bool>> ResetDemo(string id)
