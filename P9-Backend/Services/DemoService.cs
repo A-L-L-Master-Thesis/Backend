@@ -173,7 +173,10 @@ namespace P9_Backend.Services
                 {
                     //Skip if paused
                     if (drone.Paused)
+                    {
+                        i++;
                         continue;
+                    }
 
                     // Advance the drone by one step
                     AdvanceDrone(drone, i++);
