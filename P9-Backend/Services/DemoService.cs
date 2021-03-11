@@ -14,7 +14,7 @@ namespace P9_Backend.Services
         private List<DemoDrone> _demoDrones = new List<DemoDrone>();
         private readonly int _stepDelay = 2000; // Milliseconds
         private readonly double _R = 6371.0; // Earth's Radius
-        private readonly double _droneSpeed = 10; // M/s.
+        private readonly double _droneSpeed = 8; // M/s.
 
         private List<Tuple<double, double>> _startPositions = new List<Tuple<double, double>>
         {
@@ -193,14 +193,14 @@ namespace P9_Backend.Services
         /// <param name="droneIDX">The index of the DemoDrone</param>
         private void AdvanceDrone(DemoDrone drone, int droneIDX)
         {
-            double bearing = drone.Reverse ? _droneBearings[droneIDX, drone.CurrentStep, 0] + 180 : _droneBearings[droneIDX, drone.CurrentStep, 0];
-
             if (drone.Linecoords.Count == 0)
             {
+                double nextBearing = drone.Reverse ? _droneBearings[droneIDX, drone.CurrentStep, 0] + 180 : _droneBearings[droneIDX, drone.CurrentStep, 0];
+
                 //Calculate the next line of points
                 drone.Linecoords = 
                     GetNextPathLine(drone.DroneObj.CurrentPosition.Latitude, drone.DroneObj.CurrentPosition.Longitude,
-                    bearing, _droneBearings[droneIDX, drone.CurrentStep, 1]);
+                    nextBearing, _droneBearings[droneIDX, drone.CurrentStep, 1]);
 
                 if (drone.Reverse)
                     drone.CurrentStep--;
@@ -220,10 +220,30 @@ namespace P9_Backend.Services
             }
             var nextCoords = drone.Linecoords.Dequeue();
 
+            int stepIDX;
+            int bearing;
+
+            //This if tree is necesarry to align the direction-cones correctly in the front-end
+            if (drone.CurrentStep == 0 && !drone.Reverse)
+            {
+                stepIDX = 6;
+                bearing = (int)(_droneBearings[droneIDX, stepIDX, 0]);
+            }
+            else if (drone.CurrentStep == 6 && drone.Reverse)
+            {
+                stepIDX = 6;
+                bearing = (int)(_droneBearings[droneIDX, stepIDX, 0]);
+            }
+            else
+            {
+                stepIDX = drone.Reverse ? drone.CurrentStep + 1 : drone.CurrentStep - 1;
+                bearing = (int)(drone.Reverse ? _droneBearings[droneIDX, stepIDX, 0] + 180 : _droneBearings[droneIDX, stepIDX, 0]);
+            }
+
             //Set Coords to the next coords on the path
             drone.DroneObj.CurrentPosition.Latitude = nextCoords.Item1;
             drone.DroneObj.CurrentPosition.Longitude = nextCoords.Item2;
-            drone.DroneObj.CurrentPosition.Bearing = (int)bearing;
+            drone.DroneObj.CurrentPosition.Bearing = bearing;
 
             //Update the drone in the DB
             _droneService.UpdateDrone(drone.DroneObj.UUID, drone.DroneObj);
