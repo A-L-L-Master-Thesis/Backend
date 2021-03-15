@@ -69,6 +69,7 @@ namespace P9_Backend.Services
 
                 await Task.Run(() => {
                     List<Drone> dronesList = _droneService.GetDrones().Result.Value.ToList();
+                    ChangeDroneStatusAll(DroneStatus.Charging);
 
                     for (int i = 0; i < dronesList.Count; i++)
                     {
@@ -78,6 +79,7 @@ namespace P9_Backend.Services
 
                     foreach (var drone in dronesList)
                     {
+                        drone.Status = DroneStatus.Charging;
                         _droneService.UpdateDrone(drone.UUID, drone);
                     }
 
@@ -106,6 +108,7 @@ namespace P9_Backend.Services
             return await Task.Run(() => {
                 if (_demoTask == null)
                 {
+                    ChangeDroneStatusAll(DroneStatus.Searching);
                     _demoTask = Task.Factory.StartNew(() =>
                     {
                         DemoLoop();
@@ -134,6 +137,8 @@ namespace P9_Backend.Services
                     _demoTask = null;
                     _cancellationTokenSource = new CancellationTokenSource();
                     _cancellationToken = _cancellationTokenSource.Token;
+
+                    ChangeDroneStatusAll(DroneStatus.Idle);
 
                     return true;
                 }
@@ -183,6 +188,17 @@ namespace P9_Backend.Services
                 }
 
                 Thread.Sleep(_stepDelay);
+            }
+        }
+
+        private void ChangeDroneStatusAll(DroneStatus status)
+        {
+            foreach (DemoDrone drone in _demoDrones)
+            {
+                drone.DroneObj.Status = status;
+
+                //Update the drone in the DB
+                _droneService.UpdateDrone(drone.DroneObj.UUID, drone.DroneObj);
             }
         }
 
