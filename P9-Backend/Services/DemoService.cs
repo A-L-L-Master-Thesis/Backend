@@ -158,7 +158,10 @@ namespace P9_Backend.Services
 
                 try
                 {
-                    _demoDrones.Find(x => x.DroneObj.UUID == id).Paused = pause;
+                    var demoDrone = _demoDrones.Find(x => x.DroneObj.UUID == id);
+                    demoDrone.Paused = pause;
+                    demoDrone.DroneObj.Status = pause ? DroneStatus.Following : DroneStatus.Searching;
+                    _droneService.UpdateDrone(demoDrone.DroneObj.UUID, demoDrone.DroneObj);
                     return true;
                 }
                 catch (NullReferenceException)
