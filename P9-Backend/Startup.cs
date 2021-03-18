@@ -40,6 +40,7 @@ namespace P9_Backend
             services.AddSingleton<ISocketService, SocketService>();
             services.AddSingleton<IFeedService, FeedService>();
             services.AddSingleton<IDemoService, DemoService>();
+            services.AddSingleton<ILogsService, LogsService>();
 
             services.AddCors(options =>
             {
