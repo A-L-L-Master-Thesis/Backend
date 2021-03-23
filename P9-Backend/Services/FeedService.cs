@@ -61,7 +61,7 @@ namespace P9_Backend.Services
             List<string> feedsList = new List<string>();
             Random rand = new Random();
             int SelectedPersonVideo = rand.Next(_pVids.Length);
-            string baseurl = host + "/videos/";
+            string baseurl = "https://videos.ronsholt.me/";
 
 
             await Task.Run(() => {
