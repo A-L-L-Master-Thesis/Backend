@@ -82,7 +82,11 @@ namespace P9_Backend.Services
                     }
                 }
 
-                feedsList = feedsList.OrderBy(v => rand.Next()).ToList();
+                while (feedsList[0].Contains('P'))
+                {
+                    feedsList = feedsList.OrderBy(v => rand.Next()).ToList();
+                }
+
             });
 
             return feedsList;
