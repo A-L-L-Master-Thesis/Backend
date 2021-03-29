@@ -15,6 +15,7 @@ namespace P9_Backend.Services
         private readonly int _stepDelay = 2000; // Milliseconds
         private readonly double _R = 6371.0; // Earth's Radius
         private readonly double _droneSpeed = 8; // M/s.
+        private List<DroneStatus> _prePauseStatusList = new List<DroneStatus>();
 
         private List<Tuple<double, double>> _startPositions = new List<Tuple<double, double>>
         {
@@ -108,7 +109,11 @@ namespace P9_Backend.Services
             return await Task.Run(() => {
                 if (_demoTask == null)
                 {
-                    ChangeDroneStatusAll(DroneStatus.Searching);
+                    if (_prePauseStatusList.Count == 0)
+                        ChangeDroneStatusAll(DroneStatus.Searching);
+                    else
+                        ChangeDroneStatusAll();
+
                     _demoTask = Task.Factory.StartNew(() =>
                     {
                         DemoLoop();
@@ -137,6 +142,13 @@ namespace P9_Backend.Services
                     _demoTask = null;
                     _cancellationTokenSource = new CancellationTokenSource();
                     _cancellationToken = _cancellationTokenSource.Token;
+
+                    _prePauseStatusList.Clear();
+
+                    foreach (DemoDrone drone in _demoDrones)
+                    {
+                        _prePauseStatusList.Add(drone.DroneObj.Status);
+                    }
 
                     ChangeDroneStatusAll(DroneStatus.Idle);
 
@@ -199,6 +211,18 @@ namespace P9_Backend.Services
             foreach (DemoDrone drone in _demoDrones)
             {
                 drone.DroneObj.Status = status;
+
+                //Update the drone in the DB
+                _droneService.UpdateDrone(drone.DroneObj.UUID, drone.DroneObj);
+            }
+        }
+
+        private void ChangeDroneStatusAll()
+        {
+            int i = 0;
+            foreach (DemoDrone drone in _demoDrones)
+            {
+                drone.DroneObj.Status = _prePauseStatusList[i++];
 
                 //Update the drone in the DB
                 _droneService.UpdateDrone(drone.DroneObj.UUID, drone.DroneObj);
