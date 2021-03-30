@@ -37,6 +37,7 @@ namespace P9_Backend
             services.AddDbContext<DatabaseContext>(options => options.UseMySQL(dbSettings.ConnectionString));
 
             services.AddSingleton<IDroneService, DroneService>();
+            services.AddSingleton<IBoatService, BoatService>();
             services.AddSingleton<ISocketService, SocketService>();
             services.AddSingleton<IFeedService, FeedService>();
             services.AddSingleton<IDemoService, DemoService>();
