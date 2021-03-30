@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,13 +13,11 @@ namespace P9_Backend.Controllers
     [ApiController]
     public class DronesController : ControllerBase
     {
-        private readonly DatabaseContext _context;
         private readonly IDroneService _droneService;
 
         public DronesController(DatabaseContext context, IDroneService droneService)
         {
-            _context = context;
-            _context.Database.Migrate();
+            context.Database.Migrate();
             _droneService = droneService;
         }
 

@@ -71,6 +71,7 @@ namespace P9_Backend.Services
                 await Task.Run(() => {
                     List<Drone> dronesList = _droneService.GetDrones().Result.Value.ToList();
                     ChangeDroneStatusAll(DroneStatus.Charging);
+                    _prePauseStatusList.Clear();
 
                     for (int i = 0; i < dronesList.Count; i++)
                     {

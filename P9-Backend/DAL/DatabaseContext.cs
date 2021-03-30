@@ -12,5 +12,6 @@ namespace P9_Backend.DAL
         public DbSet<Drone> Drones { get; set; }
         public DbSet<Position> Position { get; set; }
         public DbSet<LogEntry> Logs { get; set; }
+        public DbSet<Boat> Boats { get; set; }
     }
 }

@@ -1,19 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace P9_Backend.Models
 {
-    public class Position
+    public class Boat
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity), Key]
         public int ID { get; set; }
-        public double Latitude { get; set; }
-        public double Longitude { get; set; }
-        public double Altitude { get; set; }
-        public int Bearing { get; set; }
+        [ForeignKey("CurrentPositionID")]
+        public Position CurrentPosition { get; set; }
     }
 }
