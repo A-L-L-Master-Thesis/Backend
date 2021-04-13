@@ -49,11 +49,11 @@ namespace P9_Backend
             services.AddCors(options =>
             {
                 options.AddPolicy("CorsPolicy",
-                    builder => 
-                    builder.WithOrigins("http://localhost:4200")
-                    .AllowAnyMethod()
-                    .AllowAnyHeader()
-                    .AllowCredentials()
+                    builder => builder.WithOrigins("http://localhost:4200", "http://ronsholt.me", "https://ronsholt.me")
+                        .SetIsOriginAllowedToAllowWildcardSubdomains()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials()
                     );
             });
 
