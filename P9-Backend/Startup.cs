@@ -17,6 +17,7 @@ using P9_Backend.DAL;
 using Microsoft.EntityFrameworkCore;
 using P9_Backend.Services;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using P9_Backend.HubConfig;
 
 namespace P9_Backend
 {
@@ -36,6 +37,8 @@ namespace P9_Backend
 
             services.AddDbContext<DatabaseContext>(options => options.UseMySQL(dbSettings.ConnectionString));
 
+            services.AddSignalR();
+
             services.AddSingleton<IDroneService, DroneService>();
             services.AddSingleton<IBoatService, BoatService>();
             services.AddSingleton<ISocketService, SocketService>();
@@ -46,9 +49,11 @@ namespace P9_Backend
             services.AddCors(options =>
             {
                 options.AddPolicy("CorsPolicy",
-                    builder => builder.AllowAnyOrigin()
+                    builder => 
+                    builder.WithOrigins("http://localhost:4200")
                     .AllowAnyMethod()
                     .AllowAnyHeader()
+                    .AllowCredentials()
                     );
             });
 
@@ -76,6 +81,7 @@ namespace P9_Backend
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<DemoHub>("api/DemoStatus");
             });
         }
     }
