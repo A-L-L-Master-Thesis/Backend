@@ -36,5 +36,10 @@ namespace P9_Backend.HubConfig
         {
             await Clients.All.SendAsync("PredictiveChange");
         }
+
+        public async Task TogglePredictive()
+        {
+            await Clients.All.SendAsync("TogglePredictive");
+        }
     }
 }

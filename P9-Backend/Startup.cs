@@ -49,7 +49,7 @@ namespace P9_Backend
             services.AddCors(options =>
             {
                 options.AddPolicy("CorsPolicy",
-                    builder => builder.WithOrigins("http://localhost:4200", "http://ronsholt.me", "https://ronsholt.me")
+                    builder => builder.WithOrigins("http://localhost:4200", "https://localhost:4200", "http://ronsholt.me", "https://ronsholt.me", "http://drones.ronsholt.me", "https://drones.ronsholt.me")
                         .SetIsOriginAllowedToAllowWildcardSubdomains()
                         .AllowAnyMethod()
                         .AllowAnyHeader()
